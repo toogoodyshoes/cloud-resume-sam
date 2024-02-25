@@ -1,34 +1,46 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+  UpdateAPI:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: update-count
+      CorsConfiguration:
+        AllowOrigins:
+          - "https://lekhadenihar.dev"
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - OPTIONS
+          - POST
   DBAccessRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: lambda_ddb_access
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               Service:
-                - 'lambda.amazonaws.com'
+                - "lambda.amazonaws.com"
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Policies:
         - PolicyName: LambdaDynamoDBAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Sid: DynamoDBAccess
                 Effect: Allow
                 Action:
-                  - 'dynamodb:PutItem'
-                  - 'dynamodb:GetItem'
-                  - 'dynamodb:UpdateItem'
+                  - "dynamodb:PutItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:UpdateItem"
                 Resource: !GetAtt CountTable.Arn
   CountUpdateFunction:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       Architectures:
         - x86_64
@@ -37,6 +49,13 @@ Resources:
       Handler: count.increment
       Runtime: python3.9
       Role: !GetAtt DBAccessRole.Arn
+      Events:
+        UpdateCountAPI:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref UpdateAPI
+            Path: /update_count
+            Method: POST
   CountTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -50,4 +69,3 @@ Resources:
       KeySchema:
         - AttributeName: user
           KeyType: HASH
-
