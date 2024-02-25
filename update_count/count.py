@@ -3,7 +3,7 @@ import boto3
 dynamodb = boto3.resource('dynamodb')
 
 def increment(event, context):
-    table = dynamodb.Table('visitor-counter')
+    table = dynamodb.Table('vis-count')
     
     response = table.get_item(
         Key={'user': 'nihar'}
