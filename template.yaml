@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+# Globals:
+#   Function:
+#     Timeout: 3
+#     MemorySize: 128
+
+Resources:
+  DBAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda_ddb_access
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: LambdaDynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DynamoDBAccess
+                Effect: Allow
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:UpdateItem'
+                Resource: !GetAtt CountTable.Arn
+  CountUpdateFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Architectures:
+        - x86_64
+      CodeUri: update_count/
+      FunctionName: update_count
+      Handler: count.increment
+      Runtime: python3.9
+      Role: !GetAtt DBAccessRole.Arn
+      # Events:
+      #   IncrementCount:
+      #     Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+      #     Properties:
+      #       Path: /hello
+      #       Method: get
+  CountTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: vis_count
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+        - AttributeName: user
+          AttributeType: S
+        - AttributeName: v_count
+          AttributeType: N
+      KeySchema:
+        - AttributeName: user
+          KeyType: HASH
+        - AttributeName: v_count
+          KeyType: RANGE
+
+# Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  # HelloWorldApi:
+  #   Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+  #   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  # HelloWorldFunction:
+  #   Description: "Hello World Lambda Function ARN"
+  #   Value: !GetAtt HelloWorldFunction.Arn
+  # HelloWorldFunctionIamRole:
+  #   Description: "Implicit IAM Role created for Hello World function"
+  #   Value: !GetAtt HelloWorldFunctionRole.Arn
