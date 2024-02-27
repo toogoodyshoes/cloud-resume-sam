@@ -40,9 +40,6 @@ jobs:
       - name: Run tests
         run: pytest -s tests/unit/
 
-      - name: Deactivate venv
-        run: deactivate
-
       - name: Check AWS SAM CLI
         run: sam --version
 
