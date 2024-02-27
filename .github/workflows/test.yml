@@ -13,11 +13,14 @@ jobs:
       - name: Verify python installation
         run: python3 --version
 
-      # - name: Install software properties
-      #   run: sudo apt install software-properties-common
+      - name: Install software properties
+        run: sudo apt install software-properties-common
 
-      # - name: Update 
-      #   run: sudo apt update
+      - name: Add deadsnakes PPA
+        run: sudo add-apt-repository ppa:deadsnakes/ppa
+
+      - name: Update 
+        run: sudo apt update
 
       - name: Install python 3.9
         run: sudo apt install python3.9
