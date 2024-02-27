@@ -57,4 +57,4 @@ jobs:
         run: sam build
 
       - name: SAM Deploy
-        run: sam deploy --capabilities CAPABILITY_NAMED_IAM
+        run: sam deploy --capabilities CAPABILITY_NAMED_IAM -y
