@@ -10,8 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install python
+        run: sudo apt install python3 -y
+      
+      - name: Verify installation
+        run: python3 --version
+
       - name: Checkout code
         uses: actions/checkout@v4.1.1
+
+      - name: Create venv
+        run: python3 -m venv .venv
+
+      - name: Activate venv
+        run: source .venv/bin/activate
+
+      - name: install packages
+        run: pip install -r test/requirements.txt
 
       - name: Run tests
         run: pytest -s tests/unit/
