@@ -49,6 +49,9 @@ Resources:
       Handler: count.increment
       Runtime: python3.9
       Role: !GetAtt DBAccessRole.Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: vis-count
       Events:
         UpdateCountAPI:
           Type: HttpApi
