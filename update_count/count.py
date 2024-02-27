@@ -29,7 +29,7 @@ def increment(event, context):
         response = create_item(dynamo_db=dynamodb_resource_class)
         
     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        return return_count(dynamo_db=dynamodb_resource_class)
+        return send_count(dynamo_db=dynamodb_resource_class)
     else:
         return {
                 "message": "Update operation failed!"
@@ -58,7 +58,7 @@ def update_item(dynamo_db: LambdaDynamoDBClass):
         }
     )
 
-def return_count(dynamo_db: LambdaDynamoDBClass):
+def send_count(dynamo_db: LambdaDynamoDBClass):
     response = dynamo_db.table.get_item(
         Key={'user': 'nihar'}
     )
