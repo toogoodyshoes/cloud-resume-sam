@@ -57,4 +57,4 @@ jobs:
         run: sam build
 
       - name: SAM Deploy
-        run: sam deploy --region ap-south-1 --capabilities CAPABILITY_NAME_IAM
+        run: sam deploy
