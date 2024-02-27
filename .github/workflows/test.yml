@@ -1,0 +1,20 @@
+name: Test
+run-name: Running tests on dev...
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: pytest -s tests/unit/
