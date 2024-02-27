@@ -30,3 +30,9 @@ jobs:
 
       - name: Check AWS SAM CLI
         run: sam --version
+
+      - name: SAM Build
+        run: sam build
+
+      - name: SAM Deploy
+        run: sam deploy --region ap-south-1 --capabilities CAPABILITY_NAME_IAM
