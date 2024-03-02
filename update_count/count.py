@@ -1,5 +1,6 @@
 from os import environ
 from boto3 import resource
+import hashlib
 
 _LAMBDA_DYNAMODB_RESOURCE = { 
     "resource" : resource('dynamodb', region_name='ap-south-1'), 
@@ -18,46 +19,58 @@ def increment(event, context):
     global _LAMBDA_DYNAMODB_RESOURCE
 
     dynamodb_resource_class = LambdaDynamoDBClass(_LAMBDA_DYNAMODB_RESOURCE)
-    
-    response = check_item(dynamo_db=dynamodb_resource_class)
-    
-    if 'Item' in response:
-        response.clear()
-        response = update_item(dynamo_db=dynamodb_resource_class)
-    else:
-        response.clear()
-        response = create_item(dynamo_db=dynamodb_resource_class)
-        
-    if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        return send_count(dynamo_db=dynamodb_resource_class)
-    else:
-        return {
-                "message": "Update operation failed!"
-        }
 
-# Helper Functions
+    source_ip = event['requestContext']['http']['sourceIp']
+    hasher = hashlib.sha256()
+    hasher.update(source_ip.encode('utf-8'))
+    hashed_ip = hasher.hexdigest()
+
+    response = check_item(dynamo_db=dynamodb_resource_class)
+
+    if 'Item' in response:
+        update_count(dynamo_db=dynamodb_resource_class, hashed_ip=hashed_ip)
+    else:
+        create_item(dynamo_db=dynamodb_resource_class, hashed_ip=hashed_ip)
+
+    return send_count(dynamo_db=dynamodb_resource_class)
+
+# Check if the item is present in DB
 def check_item(dynamo_db: LambdaDynamoDBClass):
     return dynamo_db.table.get_item(
         Key={'user': 'nihar'}
     )
 
-def create_item(dynamo_db: LambdaDynamoDBClass):
+# Add item to DB
+def create_item(dynamo_db: LambdaDynamoDBClass, hashed_ip: str):
     return dynamo_db.table.put_item(
         Item={
             'user': 'nihar',
             'v_count': 1,
+            'visitors': [hashed_ip]
         }
     )
 
-def update_item(dynamo_db: LambdaDynamoDBClass):
+# Update the count in DB
+def update_count(dynamo_db: LambdaDynamoDBClass, hashed_ip: str):
+    response = dynamo_db.table.get_item(
+        Key={'user': 'nihar'}
+    )
+
+    visitors = response['Item']['visitors']
+    if hashed_ip in visitors:
+        return
+    visitors.append(hashed_ip)
+
     return dynamo_db.table.update_item(
         Key={'user': 'nihar'},
-        UpdateExpression='SET v_count = v_count + :val',
+        UpdateExpression='SET v_count = v_count + :val, visitors = :new_vis',
         ExpressionAttributeValues={
-                ':val': 1
+                ':val': 1,
+                ':new_vis': visitors
         }
     )
 
+# Return the visitor count
 def send_count(dynamo_db: LambdaDynamoDBClass):
     response = dynamo_db.table.get_item(
         Key={'user': 'nihar'}
