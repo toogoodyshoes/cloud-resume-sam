@@ -6,7 +6,7 @@ from boto3 import resource, client
 
 sys.path.append('./')
 from update_count.count import LambdaDynamoDBClass
-from update_count.count import increment, check_item, create_item, update_item, send_count
+from update_count.count import increment, check_item, create_item, update_count, send_count
 
 @moto.mock_aws
 class TestLambda(TestCase):
